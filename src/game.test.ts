@@ -25,6 +25,26 @@ describe('game logic', () => {
     expect(session.config.mode).toBe('lightning')
   })
 
+  it('creates guided within-10 session with tasks inside the path mode', () => {
+    const session = createSession('easy', 'learn10')
+    expect(session.config.mode).toBe('learn10')
+    expect(session.tasks.length).toBeGreaterThanOrEqual(5)
+  })
+
+  it('creates number line tasks with model data', () => {
+    const task = createTask(6, 'easy', 'numberline')
+    expect(task.kind).toBe('numberline')
+    expect(task.numberLineModel).toBeDefined()
+    expect(task.options).toHaveLength(4)
+  })
+
+  it('creates make-10 bond tasks with bond model data', () => {
+    const task = createTask(7, 'easy', 'make10')
+    expect(task.kind).toBe('bond')
+    expect(task.bondModel?.whole).toBe(10)
+    expect(task.options).toHaveLength(4)
+  })
+
   it('creates a column arithmetic task in column mode', () => {
     const task = createTask(3, 'medium', 'columns')
     expect(['column', 'choice']).toContain(task.kind)

@@ -145,6 +145,16 @@ function getTaskSpecificTip(task: Task) {
       : 'Stulpeliu pradėk nuo vienetų. Jei viršuje skaičius per mažas, pasiskolink iš kairiojo stulpelio.'
   }
 
+  if (task.kind === 'numberline') {
+    return task.operation === 'addition'
+      ? 'Skaičių tiesėje sudėtis reiškia žingsnius į dešinę.'
+      : 'Skaičių tiesėje atimtis reiškia žingsnius į kairę.'
+  }
+
+  if (task.kind === 'bond') {
+    return 'Pagalvok, kiek dar trūksta iki 10. Dešimties draugai visada sudaro pilną dešimtuką.'
+  }
+
   return 'Ramiai perskaityk užduotį ir spręsk žingsnis po žingsnio.'
 }
 
@@ -256,6 +266,58 @@ function ColumnProblem({ task, showSteps, revealAnswer }: { task: Task; showStep
           <span>3. Pasirink teisingą atsakymą apačioje.</span>
         </div>
       ) : null}
+    </div>
+  )
+}
+
+function NumberLineProblem({ task, revealAnswer }: { task: Task; revealAnswer: boolean }) {
+  if (!task.numberLineModel) return <h2 className="task-prompt">{task.prompt}</h2>
+
+  const { start, change, target, min, max } = task.numberLineModel
+  const ticks = Array.from({ length: max - min + 1 }, (_, index) => min + index)
+  const stepCount = Math.abs(change)
+
+  return (
+    <div className="visual-task">
+      <h2 className="task-prompt">{task.prompt}</h2>
+      <div className="numberline-card">
+        <div className="numberline-track">
+          {ticks.map((tick) => {
+            const active = tick === start || tick === target
+            const inJump = change > 0 ? tick >= start && tick <= target : tick <= start && tick >= target
+            return (
+              <div key={tick} className={`numberline-tick${active ? ' active' : ''}${inJump ? ' in-jump' : ''}`}>
+                <span className="numberline-dot" />
+                <span className="numberline-label">{tick}</span>
+              </div>
+            )
+          })}
+        </div>
+        <div className="numberline-caption">
+          <span>Pradžia: {start}</span>
+          <span>{change > 0 ? `Šokame ${stepCount} į dešinę` : `Šokame ${stepCount} į kairę`}</span>
+          {revealAnswer ? <span>Nusileidžiame ties {target}</span> : null}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function BondProblem({ task, revealAnswer }: { task: Task; revealAnswer: boolean }) {
+  if (!task.bondModel) return <h2 className="task-prompt">{task.prompt}</h2>
+  const { whole, left, right } = task.bondModel
+
+  return (
+    <div className="visual-task">
+      <h2 className="task-prompt">{task.prompt}</h2>
+      <div className="bond-card">
+        <div className="bond-whole">{whole}</div>
+        <div className="bond-branch" />
+        <div className="bond-parts">
+          <div className="bond-part">{left ?? (revealAnswer ? task.answer : '?')}</div>
+          <div className="bond-part">{right ?? (revealAnswer ? task.answer : '?')}</div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -414,9 +476,28 @@ function App() {
               ? 'Veiksmas'
               : task?.kind === 'story'
                 ? 'Istorija'
-                : 'Palygink'
+                : task?.kind === 'numberline'
+                  ? 'Tiesė'
+                  : task?.kind === 'bond'
+                    ? '10 draugai'
+                    : 'Palygink'
 
-  const modeIcon = modeMeta.label === 'Stulpeliu' ? '▦' : modeMeta.label === 'Žaibo raundas' ? '⚡' : modeMeta.label === 'Skaičių detektyvas' ? '🔎' : modeMeta.label === 'Pasakojimų kelias' ? '📖' : '★'
+  const modeIcon =
+    mode === 'columns'
+      ? '▦'
+      : mode === 'lightning'
+        ? '⚡'
+        : mode === 'detective'
+          ? '🔎'
+          : mode === 'story'
+            ? '📖'
+            : mode === 'numberline'
+              ? '↔'
+              : mode === 'make10'
+                ? '10'
+                : mode === 'learn10'
+                  ? '🌱'
+                  : '★'
   const operationIcon = task?.operation === 'addition' ? '+' : '-'
   const difficultyIcon = difficulty === 'easy' ? '●' : difficulty === 'medium' ? '◐' : '▲'
 
@@ -463,8 +544,8 @@ function App() {
             {showWelcome ? (
               <div className="welcome-card">
                 <p className="eyebrow">Pasiruoškime žaisti</p>
-                <h2>Pasirink sunkumą ir žaidimą</h2>
-                <p className="welcome-copy">Kiekvienas žaidimas turi savo nuotaiką: istorijas, detektyvinius galvosūkius ar greitąjį raundą.</p>
+                <h2>Pasirink kelią</h2>
+                <p className="welcome-copy">Pirmiausia siūlome mokymosi kelius pirmokui, o tada - laisvesnius žaidimus pasitreniruoti.</p>
 
                 <div className="difficulty-grid">
                   {(['easy', 'medium', 'hard'] as Difficulty[]).map((option) => {
@@ -481,6 +562,22 @@ function App() {
                   })}
                 </div>
 
+                <div className="welcome-section-label">Mokomės</div>
+                <div className="mode-grid learning-grid">
+                  {(['learn10', 'numberline', 'make10'] as GameMode[]).map((option) => {
+                    const meta = getModeMeta(option)
+                    const active = mode === option
+
+                    return (
+                      <button key={option} className={`mode-card${active ? ' active' : ''}`} onClick={() => setMode(option)}>
+                        <strong>{meta.label}</strong>
+                        <span>{meta.helper}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div className="welcome-section-label">Praktikuojamės žaisdami</div>
                 <div className="mode-grid">
                   {(['classic', 'story', 'detective', 'lightning', 'columns'] as GameMode[]).map((option) => {
                     const meta = getModeMeta(option)
@@ -573,7 +670,15 @@ function App() {
                   <span className="task-meta-progress">{progressLabel(session)}</span>
                 </div>
 
-                {task.kind === 'column' ? <ColumnProblem task={task} showSteps={showHint} revealAnswer={feedback !== null} /> : <h2 className="task-prompt">{task.prompt}</h2>}
+                {task.kind === 'column' ? (
+                  <ColumnProblem task={task} showSteps={showHint} revealAnswer={feedback !== null} />
+                ) : task.kind === 'numberline' ? (
+                  <NumberLineProblem task={task} revealAnswer={feedback !== null} />
+                ) : task.kind === 'bond' ? (
+                  <BondProblem task={task} revealAnswer={feedback !== null} />
+                ) : (
+                  <h2 className="task-prompt">{task.prompt}</h2>
+                )}
 
                 <div
                   className={`answer-grid${task.options && task.options.length <= 2 ? ' answer-grid-compact' : ' answer-grid-quad'}`}

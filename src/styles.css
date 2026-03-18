@@ -152,6 +152,19 @@ h1 {
   margin: 0 0 24px;
 }
 
+.learning-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.welcome-section-label {
+  margin: 8px 0 10px;
+  color: #267a52;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .status-pill,
 .mini-card,
 .mascot-card,
@@ -333,6 +346,112 @@ h1 {
 
 .column-problem {
   margin-bottom: 24px;
+}
+
+.visual-task {
+  margin-bottom: 24px;
+}
+
+.numberline-card,
+.bond-card {
+  border-radius: 22px;
+  padding: 18px;
+  background: linear-gradient(180deg, #fffef8 0%, #f8fbff 100%);
+  border: 1px solid rgba(60, 110, 168, 0.12);
+}
+
+.numberline-track {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(28px, 1fr));
+  gap: 4px;
+  align-items: end;
+}
+
+.numberline-tick {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.numberline-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #bfd4e7;
+  box-shadow: 0 0 0 6px rgba(191, 212, 231, 0.16);
+}
+
+.numberline-tick.active .numberline-dot {
+  background: #229b62;
+  box-shadow: 0 0 0 6px rgba(34, 155, 98, 0.16);
+}
+
+.numberline-tick.in-jump .numberline-dot {
+  background: #ffd85a;
+}
+
+.numberline-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #345789;
+}
+
+.numberline-caption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  color: #4f6783;
+  font-size: 0.95rem;
+}
+
+.bond-card {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+}
+
+.bond-whole,
+.bond-part {
+  width: 88px;
+  height: 88px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.bond-whole {
+  background: rgba(144, 210, 255, 0.22);
+  color: #345789;
+}
+
+.bond-branch {
+  width: 2px;
+  height: 26px;
+  background: #89a6c3;
+  position: relative;
+}
+
+.bond-branch::after {
+  content: '';
+  position: absolute;
+  left: -78px;
+  top: 14px;
+  width: 158px;
+  height: 2px;
+  background: #89a6c3;
+}
+
+.bond-parts {
+  display: flex;
+  gap: 48px;
+}
+
+.bond-part {
+  background: rgba(255, 214, 133, 0.28);
+  color: #7a4c19;
 }
 
 .column-grid {
@@ -859,6 +978,7 @@ h1 {
   .summary-grid,
   .summary-grid-wide,
   .mode-grid,
+  .learning-grid,
   .parent-grid {
     grid-template-columns: 1fr;
     display: grid;
@@ -943,6 +1063,36 @@ h1 {
     width: 100%;
     padding: 12px 10px;
     gap: 4px 8px;
+  }
+
+  .numberline-card,
+  .bond-card {
+    padding: 12px;
+  }
+
+  .numberline-track {
+    grid-template-columns: repeat(auto-fit, minmax(22px, 1fr));
+  }
+
+  .numberline-caption {
+    gap: 6px;
+    font-size: 0.82rem;
+  }
+
+  .bond-whole,
+  .bond-part {
+    width: 64px;
+    height: 64px;
+    font-size: 1.55rem;
+  }
+
+  .bond-parts {
+    gap: 26px;
+  }
+
+  .bond-branch::after {
+    left: -46px;
+    width: 94px;
   }
 
   .column-number-row,
