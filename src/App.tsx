@@ -380,7 +380,7 @@ function App() {
       <div className="cloud cloud-left" aria-hidden="true" />
       <div className="cloud cloud-right" aria-hidden="true" />
 
-      <main className="app-card">
+      <main className={`app-card${!showWelcome && !finished ? ' gameplay-active' : ''}${finished ? ' gameplay-finished' : ''}${showWelcome ? ' gameplay-welcome' : ''}`}>
         <section className="hero-panel">
           <div>
             <p className="eyebrow">Skaičiukų sodas</p>
