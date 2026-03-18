@@ -190,7 +190,7 @@ const gameModes: Record<GameMode, ModeMeta> = {
   },
   learn10: {
     label: 'Iki 10',
-    helper: 'Pamatinis pirmoko kelias: skaičiuojame ir sprendžiame tik iki 10.',
+    helper: 'Pirmieji žingsniai: skaičiuojame ir sprendžiame iki 10.',
     taskKinds: ['choice', 'missing', 'story', 'compare'],
     operationBias: ['addition', 'subtraction'],
     taskBonus: -2
@@ -204,7 +204,7 @@ const gameModes: Record<GameMode, ModeMeta> = {
   },
   make10: {
     label: 'Dešimties draugai',
-    helper: 'Mokomės, kurie du skaičiai sudaro 10.',
+    helper: 'Mokomės, kurie du skaičiai kartu sudaro 10.',
     taskKinds: ['bond'],
     operationBias: ['addition'],
     taskBonus: -4
@@ -221,24 +221,24 @@ const badgeRules = [
 const storyTemplates = {
   addition: [
     (a: number, b: number, total: number) => ({
-      prompt: `Milda rado ${a} ${formatCount(a, 'obuolys', 'obuoliai', 'obuolių')}, o senelis davė dar ${b}. Kiek obuolių dabar turi Milda?`,
+      prompt: `Mildos krepšelyje yra ${a} ${formatCount(a, 'obuolys', 'obuoliai', 'obuolių')}. Senelis įdėjo dar ${b}. Kiek obuolių dabar yra krepšelyje?`,
       hint: `Pradėk nuo ${a} ir pridėk dar ${b}.`,
-      explanation: `Milda turėjo ${a} ${formatCount(a, 'obuolys', 'obuoliai', 'obuolių')}, gavo dar ${b}, todėl iš viso turi ${total}.`
+      explanation: `Krepšelyje buvo ${a} ${formatCount(a, 'obuolys', 'obuoliai', 'obuolių')}, senelis įdėjo dar ${b}, todėl dabar ten yra ${total} ${formatCount(total, 'obuolys', 'obuoliai', 'obuolių')}.`
     }),
     (a: number, b: number, total: number) => ({
-      prompt: `Tomas sudėjo ${a} ${formatCount(a, 'kaladėlė', 'kaladėlės', 'kaladėlių')}, paskui pridėjo dar ${b}. Kiek kaladėlių bokšte?`,
+      prompt: `Bokšte jau yra ${a} ${formatCount(a, 'kaladėlė', 'kaladėlės', 'kaladėlių')}. Tomas pridėjo dar ${b}. Kiek kaladėlių dabar yra bokšte?`,
       hint: `Suskaičiuok abi kaladėlių grupes kartu.`,
       explanation: `${a} + ${b} = ${total}, taigi bokšte yra ${total} kaladėlių.`
     }),
     (a: number, b: number, total: number) => ({
-      prompt: `Ema nupiešė ${a} gėles, o vėliau dar ${b}. Kiek gėlių ji nupiešė iš viso?`,
+      prompt: `Piešinyje jau yra ${a} ${formatCount(a, 'gėlė', 'gėlės', 'gėlių')}. Ema nupiešė dar ${b}. Kiek gėlių dabar yra piešinyje?`,
       hint: `Sujunk abi gėlių grupes į vieną bendrą skaičių.`,
-      explanation: `Ema nupiešė ${a} ir dar ${b}, todėl iš viso nupiešė ${total} gėlių.`
+      explanation: `Piešinyje buvo ${a} ${formatCount(a, 'gėlė', 'gėlės', 'gėlių')}, Ema nupiešė dar ${b}, todėl dabar piešinyje yra ${total} ${formatCount(total, 'gėlė', 'gėlės', 'gėlių')}.`
     }),
     (a: number, b: number, total: number) => ({
-      prompt: `Krepšelyje buvo ${a} kriaušės, o mama įdėjo dar ${b}. Kiek kriaušių dabar krepšelyje?`,
+      prompt: `Krepšelyje yra ${a} ${formatCount(a, 'kriaušė', 'kriaušės', 'kriaušių')}. Mama įdėjo dar ${b}. Kiek kriaušių dabar yra krepšelyje?`,
       hint: `Kai kažko įdedama daugiau, reikia sudėti.`,
-      explanation: `${a} + ${b} = ${total}, todėl krepšelyje dabar yra ${total} kriaušių.`
+      explanation: `${a} + ${b} = ${total}, todėl krepšelyje dabar yra ${total} ${formatCount(total, 'kriaušė', 'kriaušės', 'kriaušių')}.`
     })
   ],
   subtraction: [
@@ -253,14 +253,14 @@ const storyTemplates = {
       explanation: `${a} - ${b} = ${difference}, todėl dėžėje liko ${difference} mašinėlių.`
     }),
     (a: number, b: number, difference: number) => ({
-      prompt: `Lentoje buvo ${a} lipdukų. ${b} lipdukus nuėmėme. Kiek liko?`,
+      prompt: `Ant lentos buvo ${a} ${formatCount(a, 'lipdukas', 'lipdukai', 'lipdukų')}. ${b} nuėmėme. Kiek lipdukų liko?`,
       hint: `Kai dalį nuimame, skaičius sumažėja.`,
-      explanation: `${a} - ${b} = ${difference}, todėl lentoje liko ${difference} lipdukų.`
+      explanation: `${a} - ${b} = ${difference}, todėl ant lentos liko ${difference} lipdukų.`
     }),
     (a: number, b: number, difference: number) => ({
-      prompt: `Lukas turėjo ${a} balionus, o ${b} padovanojo draugui. Kiek balionų jam liko?`,
+      prompt: `Luko kambaryje buvo ${a} ${formatCount(a, 'balionas', 'balionai', 'balionų')}. ${b} jis padovanojo draugui. Kiek balionų liko?`,
       hint: `Pagalvok, kiek lieka po dovanojimo.`,
-      explanation: `Lukas turėjo ${a}, atidavė ${b}, todėl jam liko ${difference} balionų.`
+      explanation: `Luko kambaryje buvo ${a} ${formatCount(a, 'balionas', 'balionai', 'balionų')}, jis padovanojo ${b}, todėl liko ${difference} ${formatCount(difference, 'balionas', 'balionai', 'balionų')}.`
     })
   ]
 }
@@ -269,7 +269,7 @@ const promptVariants = {
   additionChoice: [
     (a: number, b: number) => `Kiek bus ${a} + ${b}?`,
     (a: number, b: number) => `Suskaičiuok: ${a} + ${b}`,
-    (a: number, b: number) => `Koks yra ${a} ir ${b} sumos atsakymas?`
+    (a: number, b: number) => `Kiek gausime sudėję ${a} ir ${b}?`
   ],
   subtractionChoice: [
     (a: number, b: number) => `Kiek bus ${a} - ${b}?`,
@@ -279,12 +279,12 @@ const promptVariants = {
   additionMissing: [
     (a: number, total: number) => `${a} + ? = ${total}`,
     (a: number, total: number) => `Koks skaičius tinka: ${a} + ? = ${total}?`,
-    (a: number, total: number) => `Užpildyk trūkstamą vietą: ${a} + ? = ${total}`
+    (a: number, total: number) => `Užpildyk langelį: ${a} + ? = ${total}`
   ],
   subtractionMissing: [
     (a: number, difference: number) => `${a} - ? = ${difference}`,
     (a: number, difference: number) => `Ką reikia atimti iš ${a}, kad liktų ${difference}?`,
-    (a: number, difference: number) => `Užpildyk trūkstamą vietą: ${a} - ? = ${difference}`
+    (a: number, difference: number) => `Užpildyk langelį: ${a} - ? = ${difference}`
   ],
   additionCompare: [
     (a: number, b: number, threshold: number) => `Ar tiesa, kad ${a} + ${b} yra daugiau nei ${threshold}?`,
@@ -447,11 +447,11 @@ function createNumberLineTask(id: number, settings: DifficultySettings): Task {
       id,
       operation,
       kind: 'numberline',
-      prompt: `Pradėk nuo ${start} ir pajudėk ${change} žingsnius pirmyn. Kur nusileisi?`,
+      prompt: `Pradėk nuo ${start} ir paeik ${change} žingsnius pirmyn. Kur atsidursi?`,
       answer: target,
       options: sampleOptions(target),
       hint: 'Skaičių tiesėje sudėtis reiškia judėjimą į dešinę.',
-      explanation: `Pradėjus nuo ${start} ir pajudėjus ${change} žingsnius pirmyn, pasiekiame ${target}.`,
+      explanation: `Pradėję nuo ${start} ir paėję ${change} žingsnius pirmyn, atsiduriame ties ${target}.`,
       numberLineModel: { start, change, target, min: 0, max: Math.max(10, target + 2) }
     }
   }
@@ -464,11 +464,11 @@ function createNumberLineTask(id: number, settings: DifficultySettings): Task {
     id,
     operation,
     kind: 'numberline',
-    prompt: `Pradėk nuo ${start} ir pajudėk ${change} žingsnius atgal. Kur nusileisi?`,
+    prompt: `Pradėk nuo ${start} ir paeik ${change} žingsnius atgal. Kur atsidursi?`,
     answer: target,
     options: sampleOptions(target),
     hint: 'Skaičių tiesėje atimtis reiškia judėjimą į kairę.',
-    explanation: `Pradėjus nuo ${start} ir pajudėjus ${change} žingsnius atgal, pasiekiame ${target}.`,
+    explanation: `Pradėję nuo ${start} ir paėję ${change} žingsnius atgal, atsiduriame ties ${target}.`,
     numberLineModel: { start, change: -change, target, min: 0, max: Math.max(10, start + 2) }
   }
 }
@@ -484,7 +484,7 @@ function createBondTask(id: number): Task {
     id,
     operation: 'addition',
     kind: 'bond',
-    prompt: askLeft ? `Koks skaičius su ${right} sudaro 10?` : `Koks skaičius su ${left} sudaro 10?`,
+    prompt: askLeft ? `Koks skaičius kartu su ${right} sudaro 10?` : `Koks skaičius kartu su ${left} sudaro 10?`,
     answer: missingAnswer,
     options: sampleOptions(missingAnswer),
     hint: 'Pagalvok, kiek dar trūksta iki 10.',
@@ -511,7 +511,7 @@ function createAdditionTask(id: number, kind: TaskKind, settings: DifficultySett
       prompt: mode === 'lightning' ? `${a} + ${b} = ?` : pickOne(promptVariants.additionChoice)(a, b),
       answer: total,
       options: sampleOptions(total),
-      hint: `Pabandyk pradėti nuo ${a} ir skaičiuoti toliau dar ${b} žingsnius.`,
+      hint: `Pradėk nuo ${a} ir suskaičiuok dar ${b}.`,
       explanation: `${a} pridėjus ${b}, gauname ${total}.`
     }
   }
@@ -541,7 +541,7 @@ function createAdditionTask(id: number, kind: TaskKind, settings: DifficultySett
           : pickOne(promptVariants.additionCompare)(a, b, settings.threshold),
       answer: comparison,
       options: ['Taip', 'Ne'],
-      hint: `Pirma suskaičiuok sumą, tada palygink ją su ${settings.threshold}.`,
+      hint: `Pirmiausia suskaičiuok sumą, o tada palygink ją su ${settings.threshold}.`,
       explanation: `${a} + ${b} = ${total}, todėl atsakymas yra ${comparison ? 'Taip' : 'Ne'}.`
     }
   }
@@ -618,7 +618,7 @@ function createSubtractionTask(id: number, kind: TaskKind, settings: DifficultyS
       prompt: mode === 'lightning' ? `${a} - ${b} = ?` : pickOne(promptVariants.subtractionChoice)(a, b),
       answer: difference,
       options: sampleOptions(difference),
-      hint: `Iš didesnio skaičiaus ${a} atimk ${b} po truputį.`,
+      hint: `Iš ${a} atimk ${b} po truputį.`,
       explanation: `${a} atėmus ${b}, lieka ${difference}.`
     }
   }
@@ -628,7 +628,7 @@ function createSubtractionTask(id: number, kind: TaskKind, settings: DifficultyS
       id,
       operation: 'subtraction',
       kind,
-      prompt: mode === 'detective' ? `Paslėptas skaičius: ${pickOne(promptVariants.subtractionMissing)(a, difference)}` : pickOne(promptVariants.subtractionMissing)(a, difference),
+      prompt: mode === 'detective' ? `Rask pasislėpusį skaičių: ${pickOne(promptVariants.subtractionMissing)(a, difference)}` : pickOne(promptVariants.subtractionMissing)(a, difference),
       answer: b,
       options: sampleOptions(b),
       hint: `Pagalvok, kiek turi dingti iš ${a}, kad liktų ${difference}.`,
@@ -649,7 +649,7 @@ function createSubtractionTask(id: number, kind: TaskKind, settings: DifficultyS
           : pickOne(promptVariants.subtractionCompare)(a, b, edge),
       answer: comparison,
       options: ['Taip', 'Ne'],
-      hint: `Pirma rask skirtumą, o tada palygink jį su nurodytu skaičiumi.`,
+      hint: `Pirmiausia rask skirtumą, o tada palygink jį su nurodytu skaičiumi.`,
       explanation: `${a} - ${b} = ${difference}, todėl atsakymas yra ${comparison ? 'Taip' : 'Ne'}.`
     }
   }
@@ -785,11 +785,11 @@ function teachingTextForTask(task: Task, chosenAnswer: number | boolean | string
   const correctLabel = typeof task.answer === 'boolean' ? (task.answer ? 'Taip' : 'Ne') : String(task.answer)
 
   if (task.kind === 'missing') {
-    return `Tavo atsakymas: ${chosenLabel}. Teisingas atsakymas: ${correctLabel}. Pirmiausia žiūrime, kokio skaičiaus trūksta, kad lygybė būtų teisinga. ${task.explanation}`
+      return `Tavo atsakymas: ${chosenLabel}. Teisingas atsakymas: ${correctLabel}. Pirmiausia pažiūrime, kokio skaičiaus trūksta, kad lygybė būtų teisinga. ${task.explanation}`
   }
 
   if (task.kind === 'compare') {
-    return `Tavo atsakymas: ${chosenLabel}. Teisingas atsakymas: ${correctLabel}. Tokiose užduotyse pirma apskaičiuojame veiksmą, tik po to lyginame. ${task.explanation}`
+      return `Tavo atsakymas: ${chosenLabel}. Teisingas atsakymas: ${correctLabel}. Tokiose užduotyse pirmiausia apskaičiuojame veiksmą, o tik po to lyginame. ${task.explanation}`
   }
 
   if (task.kind === 'operation') {
@@ -809,7 +809,7 @@ function teachingTextForTask(task: Task, chosenAnswer: number | boolean | string
 
 function getMainMistakeMessage(history: AnswerHistoryEntry[]) {
   const wrong = history.filter((entry) => !entry.correct)
-  if (wrong.length === 0) return 'Šį kartą klaidų beveik nebuvo - puikus darbas.'
+  if (wrong.length === 0) return 'Šį kartą klaidų beveik nebuvo, puikus darbas.'
 
   const byKind = new Map<TaskKind, number>()
   const byOperation = new Map<Operation, number>()
@@ -821,11 +821,11 @@ function getMainMistakeMessage(history: AnswerHistoryEntry[]) {
   const hardestKind = [...byKind.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
   const hardestOperation = [...byOperation.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
 
-  if (hardestKind === 'column') return 'Daugiausia klaidų buvo stulpeliu užduotyse - verta lėčiau sekti vienetus ir dešimtis.'
-  if (hardestKind === 'missing') return 'Dažniausiai suklydai ieškodamas trūkstamo skaičiaus - verta galvoti, ko trūksta iki galutinio atsakymo.'
-  if (hardestKind === 'compare') return 'Dažniausiai suklydai lyginimo užduotyse - pirmiausia apskaičiuok veiksmą, tik tada lygink.'
-  if (hardestKind === 'operation') return 'Dažniausiai suklydai rinkdamasis ženklą - stebėk, ar rezultatas didėja, ar mažėja.'
-  if (hardestOperation === 'subtraction') return 'Atimties užduotys buvo sunkesnės - verta dar kartą pasitreniruoti, kiek lieka atėmus.'
+  if (hardestKind === 'column') return 'Daugiausia klaidų buvo stulpeliu užduotyse, todėl verta lėčiau sekti vienetus ir dešimtis.'
+  if (hardestKind === 'missing') return 'Dažniausiai suklydai ieškodamas trūkstamo skaičiaus, todėl verta pagalvoti, ko trūksta iki galutinio atsakymo.'
+  if (hardestKind === 'compare') return 'Dažniausiai suklydai lyginimo užduotyse, todėl pirmiausia apskaičiuok veiksmą, o tik tada lygink.'
+  if (hardestKind === 'operation') return 'Dažniausiai suklydai rinkdamasis ženklą, todėl stebėk, ar rezultatas didėja, ar mažėja.'
+  if (hardestOperation === 'subtraction') return 'Atimties užduotys buvo sunkesnės, todėl verta dar kartą pasitreniruoti, kiek lieka atėmus.'
   return 'Kai kuriose užduotyse verta neskubėti ir pasitikrinti skaičiavimą dar kartą.'
 }
 

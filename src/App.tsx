@@ -122,7 +122,7 @@ function getTaskSpecificTip(task: Task) {
   }
 
   if (task.kind === 'compare') {
-    return 'Pirma apskaičiuok veiksmą, o tik tada nuspręsk, ar teiginys teisingas.'
+    return 'Pirmiausia apskaičiuok veiksmą, o tada nuspręsk, ar teiginys teisingas.'
   }
 
   if (task.kind === 'story') {
@@ -132,7 +132,7 @@ function getTaskSpecificTip(task: Task) {
   }
 
   if (task.kind === 'operation') {
-    return 'Pažiūrėk, ar galutinis skaičius didesnis ar mažesnis už pirmąjį - tai padės parinkti ženklą.'
+    return 'Pažiūrėk, ar galutinis skaičius didesnis, ar mažesnis už pirmąjį. Tai padės parinkti ženklą.'
   }
 
   if (task.kind === 'match') {
@@ -152,7 +152,7 @@ function getTaskSpecificTip(task: Task) {
   }
 
   if (task.kind === 'bond') {
-    return 'Pagalvok, kiek dar trūksta iki 10. Dešimties draugai visada sudaro pilną dešimtuką.'
+    return 'Pagalvok, kiek dar trūksta iki 10. Du dešimties draugai kartu visada sudaro 10.'
   }
 
   return 'Ramiai perskaityk užduotį ir spręsk žingsnis po žingsnio.'
@@ -179,11 +179,11 @@ function getMascotHelp({
   currentIndex: number
   totalTasks: number
 }) {
-  if (showWelcome) return 'Pasirink žaidimą ir sunkumą. Pradžioje rekomenduoju lengvą lygį.'
+  if (showWelcome) return 'Pasirink žaidimą ir sunkumą. Pradžiai geriausiai tinka lengvas lygis.'
   if (finished) return hearts === 0 ? 'Baigėsi gyvybės, bet gali pabandyti dar kartą ir pagerinti savo seriją.' : 'Sesija baigta. Peržiūrėk rezultatą ir išsirink naują žaidimą.'
   if (!task) return 'Tuoj paruošiu kitą užduotį.'
-  if (feedback?.tone === 'error') return `Atsakymas buvo neteisingas. ${task.kind === 'column' ? 'Atverk žingsnius ir sek stulpelius iš dešinės į kairę.' : getTaskSpecificTip(task)}`
-  if (feedback?.tone === 'success') return streak >= 3 ? `Puiki serija - jau ${streak} iš eilės! Pereik prie kitos užduoties.` : 'Teisingai. Perskaityk paaiškinimą ir tęsk toliau.'
+  if (feedback?.tone === 'error') return `Atsakymas buvo neteisingas. ${task.kind === 'column' ? 'Parodyk žingsnius ir sek stulpelius iš dešinės į kairę.' : getTaskSpecificTip(task)}`
+  if (feedback?.tone === 'success') return streak >= 3 ? `Puiki serija, jau ${streak} iš eilės! Pereik prie kitos užduoties.` : 'Teisingai. Perskaityk paaiškinimą ir keliauk toliau.'
   if (showHint) return task.kind === 'column' ? 'Viršuje matai pagalbinius žingsnius. Pirmiausia žiūrėk į vienetus, po to į dešimtis.' : `${task.hint} ${getTaskSpecificTip(task)}`
   if (hearts === 1) return 'Liko paskutinė gyvybė. Neskubėk ir pasinaudok užuomina, jei reikia.'
   if (task.kind === 'column') return `${getTaskSpecificTip(task)} Jei reikia pagalbos, spausk „Rodyti žingsnius“.`
@@ -465,19 +465,19 @@ function App() {
 
   const taskKindLabel =
     task?.kind === 'choice'
-      ? 'Pasirink'
+      ? 'Pasirinkimas'
       : task?.kind === 'missing'
-        ? 'Trūksta'
+        ? 'Trūkstamas skaičius'
         : task?.kind === 'column'
           ? 'Stulpeliu'
           : task?.kind === 'operation'
-            ? 'Ženklas'
+            ? 'Veiksmo ženklas'
             : task?.kind === 'match'
-              ? 'Veiksmas'
+              ? 'Rask veiksmą'
               : task?.kind === 'story'
                 ? 'Istorija'
                 : task?.kind === 'numberline'
-                  ? 'Tiesė'
+                  ? 'Skaičių tiesė'
                   : task?.kind === 'bond'
                     ? '10 draugai'
                     : 'Palygink'
@@ -545,7 +545,7 @@ function App() {
               <div className="welcome-card">
                 <p className="eyebrow">Pasiruoškime žaisti</p>
                 <h2>Pasirink kelią</h2>
-                <p className="welcome-copy">Pirmiausia siūlome mokymosi kelius pirmokui, o tada - laisvesnius žaidimus pasitreniruoti.</p>
+                <p className="welcome-copy">Pirmiausia rinkis mokymosi kelią, o paskui galėsi pasitreniruoti žaisdamas.</p>
 
                 <div className="difficulty-grid">
                   {(['easy', 'medium', 'hard'] as Difficulty[]).map((option) => {
@@ -648,7 +648,7 @@ function App() {
                       </span>
                     ))
                   ) : (
-                    <span className="badge-chip muted">Kitą kartą atrakinsi pirmuosius lipdukus!</span>
+                     <span className="badge-chip muted">Kitą kartą atrakinsi pirmuosius lipdukus.</span>
                   )}
                 </div>
                 <div className="actions-row">
@@ -704,7 +704,7 @@ function App() {
                   {feedback?.tone === 'error' ? (
                     <>
                       <button className="secondary-button" onClick={() => setShowHint((value) => !value)}>
-                        {task.kind === 'column' ? (showHint ? 'Slėpti žingsnius' : 'Rodyti žingsnius') : showHint ? 'Slėpti paaiškinimą' : 'Rodyti užuominą'}
+                        {task.kind === 'column' ? (showHint ? 'Slėpti žingsnius' : 'Rodyti žingsnius') : showHint ? 'Slėpti užuominą' : 'Rodyti užuominą'}
                       </button>
                       <button className="primary-button" onClick={continueAfterReview}>
                         Keliaujam toliau
@@ -726,7 +726,7 @@ function App() {
 
                 {feedback ? (
                   <div className={`feedback-box ${feedback.tone}`}>
-                    <strong>{feedback.tone === 'error' ? 'Beveik! Pasižiūrėkime kartu' : feedback.text}</strong>
+                    <strong>{feedback.tone === 'error' ? 'Beveik! Pasižiūrėkime kartu.' : feedback.text}</strong>
                     {feedback.tone === 'error' ? (
                       <>
                         <span>Tavo atsakymas: <strong>{formatAnswerLabel(feedback.chosenAnswer)}</strong></span>
@@ -755,16 +755,16 @@ function App() {
 
             <div className="mini-card">
               <h3>Atlygis</h3>
-              <p>Dabartinė serija: {showWelcome ? lifetime.bestStreak : session.rewards.streak}</p>
-              <p>Teisingai išspręsta: {showWelcome ? 0 : session.rewards.completed}</p>
-              <p>Pasirinktas žaidimas: {modeMeta.label}</p>
+               <p>Dabartinė serija: {showWelcome ? lifetime.bestStreak : session.rewards.streak}</p>
+               <p>Teisingai išspręsta: {showWelcome ? 0 : session.rewards.completed}</p>
+               <p>Pasirinktas žaidimas: {modeMeta.label}</p>
             </div>
 
             <div className="mini-card">
               <h3>Šeimos kampelis</h3>
-              <p>Iš viso sesijų: {lifetime.sessionsPlayed}</p>
-              <p>Surinkta žvaigždučių: {lifetime.starsCollected}</p>
-              <p>Geriausia serija: {lifetime.bestStreak}</p>
+               <p>Iš viso sužaista sesijų: {lifetime.sessionsPlayed}</p>
+               <p>Iš viso surinkta žvaigždučių: {lifetime.starsCollected}</p>
+               <p>Geriausia serija: {lifetime.bestStreak}</p>
             </div>
 
             <div className="mini-card">
@@ -809,11 +809,11 @@ function App() {
             <div className="parent-grid">
               <div className="mini-card">
                 <h3>Bendra pažanga</h3>
-                <p>Sesijų sužaista: {lifetime.sessionsPlayed}</p>
-                <p>Žvaigždučių surinkta: {lifetime.starsCollected}</p>
-                <p>Geriausia serija: {lifetime.bestStreak}</p>
-                <p>Lipdukų atrakinta: {lifetime.badgesUnlocked.length}</p>
-                <p>Pasirinktas žaidimas: {modeMeta.label}</p>
+                 <p>Sužaista sesijų: {lifetime.sessionsPlayed}</p>
+                 <p>Surinkta žvaigždučių: {lifetime.starsCollected}</p>
+                 <p>Geriausia serija: {lifetime.bestStreak}</p>
+                 <p>Lipdukų atrakinta: {lifetime.badgesUnlocked.length}</p>
+                 <p>Pasirinktas žaidimas: {modeMeta.label}</p>
               </div>
 
               <div className="mini-card">
@@ -839,7 +839,7 @@ function App() {
                     Išvalyti pažangą
                   </button>
                 </div>
-                <p className="parent-note">Išvalius pažangą bus panaikintos sukauptos žvaigždutės, sesijos ir lipdukai.</p>
+                 <p className="parent-note">Išvalius pažangą, bus panaikintos sukauptos žvaigždutės, sesijos ir lipdukai.</p>
               </div>
             </div>
           </div>
