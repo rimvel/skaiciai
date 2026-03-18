@@ -1,7 +1,7 @@
 export type Operation = 'addition' | 'subtraction'
-export type TaskKind = 'choice' | 'missing' | 'compare' | 'story' | 'column' | 'operation' | 'match'
+export type TaskKind = 'choice' | 'missing' | 'compare' | 'story' | 'column' | 'operation' | 'match' | 'numberline' | 'bond'
 export type Difficulty = 'easy' | 'medium' | 'hard'
-export type GameMode = 'classic' | 'story' | 'detective' | 'lightning' | 'columns'
+export type GameMode = 'classic' | 'story' | 'detective' | 'lightning' | 'columns' | 'learn10' | 'numberline' | 'make10'
 
 export type Task = {
   id: number
@@ -13,6 +13,22 @@ export type Task = {
   hint: string
   explanation: string
   columnLayout?: ColumnLayout
+  numberLineModel?: NumberLineModel
+  bondModel?: BondModel
+}
+
+export type NumberLineModel = {
+  start: number
+  change: number
+  target: number
+  min: number
+  max: number
+}
+
+export type BondModel = {
+  whole: number
+  left: number | null
+  right: number | null
 }
 
 export type ColumnLayout = {
@@ -171,6 +187,27 @@ const gameModes: Record<GameMode, ModeMeta> = {
     taskKinds: ['column'],
     operationBias: ['addition', 'subtraction'],
     taskBonus: -2
+  },
+  learn10: {
+    label: 'Iki 10',
+    helper: 'Pamatinis pirmoko kelias: skaičiuojame ir sprendžiame tik iki 10.',
+    taskKinds: ['choice', 'missing', 'story', 'compare'],
+    operationBias: ['addition', 'subtraction'],
+    taskBonus: -2
+  },
+  numberline: {
+    label: 'Skaičių tiesė',
+    helper: 'Mokomės judėti pirmyn ir atgal skaičių tiesėje.',
+    taskKinds: ['numberline'],
+    operationBias: ['addition', 'subtraction'],
+    taskBonus: -3
+  },
+  make10: {
+    label: 'Dešimties draugai',
+    helper: 'Mokomės, kurie du skaičiai sudaro 10.',
+    taskKinds: ['bond'],
+    operationBias: ['addition'],
+    taskBonus: -4
   }
 }
 
@@ -307,6 +344,28 @@ function sampleExpressions(correct: string, distractors: string[]) {
   return unique.sort(() => Math.random() - 0.5).slice(0, 4)
 }
 
+function withModeRanges(settings: DifficultySettings, mode: GameMode): DifficultySettings {
+  if (mode === 'learn10' || mode === 'make10') {
+    return {
+      ...settings,
+      additionRange: [0, 10],
+      subtractionRange: [0, 10],
+      threshold: 8
+    }
+  }
+
+  if (mode === 'numberline') {
+    return {
+      ...settings,
+      additionRange: settings.label === 'Lengvas' ? [0, 10] : [0, 20],
+      subtractionRange: settings.label === 'Lengvas' ? [0, 10] : [0, 20],
+      threshold: 10
+    }
+  }
+
+  return settings
+}
+
 function getBadgeAwards(rewards: RewardState) {
   return badgeRules
     .filter((badge) => {
@@ -373,6 +432,68 @@ function createColumnLayout(a: number, b: number, operator: '+' | '-'): ColumnLa
     hintType: hintDigits.some(Boolean) ? 'carry' : null,
     borrowHintDigits,
     operator
+  }
+}
+
+function createNumberLineTask(id: number, settings: DifficultySettings): Task {
+  const operation: Operation = Math.random() > 0.45 ? 'addition' : 'subtraction'
+
+  if (operation === 'addition') {
+    const start = randomInt(settings.additionRange[0], Math.max(settings.additionRange[0], settings.additionRange[1] - 4))
+    const change = randomInt(1, Math.min(4, settings.additionRange[1] - start))
+    const target = start + change
+
+    return {
+      id,
+      operation,
+      kind: 'numberline',
+      prompt: `Pradėk nuo ${start} ir pajudėk ${change} žingsnius pirmyn. Kur nusileisi?`,
+      answer: target,
+      options: sampleOptions(target),
+      hint: 'Skaičių tiesėje sudėtis reiškia judėjimą į dešinę.',
+      explanation: `Pradėjus nuo ${start} ir pajudėjus ${change} žingsnius pirmyn, pasiekiame ${target}.`,
+      numberLineModel: { start, change, target, min: 0, max: Math.max(10, target + 2) }
+    }
+  }
+
+  const start = randomInt(3, settings.subtractionRange[1])
+  const change = randomInt(1, Math.min(4, start))
+  const target = start - change
+
+  return {
+    id,
+    operation,
+    kind: 'numberline',
+    prompt: `Pradėk nuo ${start} ir pajudėk ${change} žingsnius atgal. Kur nusileisi?`,
+    answer: target,
+    options: sampleOptions(target),
+    hint: 'Skaičių tiesėje atimtis reiškia judėjimą į kairę.',
+    explanation: `Pradėjus nuo ${start} ir pajudėjus ${change} žingsnius atgal, pasiekiame ${target}.`,
+    numberLineModel: { start, change: -change, target, min: 0, max: Math.max(10, start + 2) }
+  }
+}
+
+function createBondTask(id: number): Task {
+  const whole = 10
+  const left = randomInt(0, 10)
+  const right = whole - left
+  const askLeft = Math.random() > 0.5
+  const missingAnswer = askLeft ? left : right
+
+  return {
+    id,
+    operation: 'addition',
+    kind: 'bond',
+    prompt: askLeft ? `Koks skaičius su ${right} sudaro 10?` : `Koks skaičius su ${left} sudaro 10?`,
+    answer: missingAnswer,
+    options: sampleOptions(missingAnswer),
+    hint: 'Pagalvok, kiek dar trūksta iki 10.',
+    explanation: `${left} ir ${right} kartu sudaro 10.`,
+    bondModel: {
+      whole,
+      left: askLeft ? null : left,
+      right: askLeft ? right : null
+    }
   }
 }
 
@@ -600,8 +721,10 @@ export function getModeMeta(mode: GameMode) {
 }
 
 export function createTask(id: number, difficulty: Difficulty = 'easy', mode: GameMode = 'classic'): Task {
-  const settings = difficultySettings[difficulty]
+  const settings = withModeRanges(difficultySettings[difficulty], mode)
   const meta = gameModes[mode]
+  if (mode === 'numberline') return createNumberLineTask(id, settings)
+  if (mode === 'make10') return createBondTask(id)
   const operation = pickOne(meta.operationBias)
   const kind = pickOne(meta.taskKinds)
 
@@ -611,7 +734,7 @@ export function createTask(id: number, difficulty: Difficulty = 'easy', mode: Ga
 }
 
 export function createSession(difficulty: Difficulty = 'easy', mode: GameMode = 'classic'): SessionState {
-  const settings = difficultySettings[difficulty]
+  const settings = withModeRanges(difficultySettings[difficulty], mode)
   const meta = gameModes[mode]
   const totalTasks = Math.max(5, settings.totalTasks + meta.taskBonus)
 
