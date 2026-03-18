@@ -89,7 +89,8 @@ describe('game logic', () => {
         rewards: { stars: 0, streak: 0, badges: [], completed: 0, bestStreak: 0 },
         hearts: 3,
         config: { difficulty: 'easy' as const, totalTasks: 1, mode: 'classic' as const },
-        lifetime: { starsCollected: 0, sessionsPlayed: 0, bestStreak: 0, badgesUnlocked: [] }
+        lifetime: { starsCollected: 0, sessionsPlayed: 0, bestStreak: 0, badgesUnlocked: [] },
+        history: []
       },
       { starsCollected: 0, sessionsPlayed: 0, bestStreak: 0, badgesUnlocked: [] }
     )
@@ -109,7 +110,8 @@ describe('game logic', () => {
       rewards: { stars: 0, streak: 2, badges: [], completed: 0, bestStreak: 2 },
       hearts: 3,
       config: { difficulty: 'easy' as const, totalTasks: 1, mode: 'classic' as const },
-      lifetime: { starsCollected: 0, sessionsPlayed: 0, bestStreak: 0, badgesUnlocked: [] }
+      lifetime: { starsCollected: 0, sessionsPlayed: 0, bestStreak: 0, badgesUnlocked: [] },
+      history: []
     }
 
     const result = applyAnswer(session, 1)

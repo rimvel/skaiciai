@@ -52,12 +52,37 @@ export type SessionState = {
   hearts: number
   config: SessionConfig
   lifetime: LifetimeProgress
+  history: AnswerHistoryEntry[]
+}
+
+export type AnswerHistoryEntry = {
+  taskId: number
+  kind: TaskKind
+  operation: Operation
+  prompt: string
+  chosenAnswer: number | boolean | string
+  correctAnswer: number | boolean | string
+  correct: boolean
+  explanation: string
+}
+
+export type SessionSummary = {
+  correctCount: number
+  wrongCount: number
+  accuracy: number
+  hardestKind: TaskKind | null
+  hardestOperation: Operation | null
+  mainMistake: string
+  teachingFocus: string
 }
 
 export type AnswerResult = {
   correct: boolean
   praise: string
   explanation: string
+  chosenAnswer: number | boolean | string
+  correctAnswer: number | boolean | string
+  teachingText: string
   nextSession: SessionState
 }
 
@@ -611,7 +636,8 @@ export function createSession(difficulty: Difficulty = 'easy', mode: GameMode = 
       sessionsPlayed: 0,
       bestStreak: 0,
       badgesUnlocked: []
-    }
+    },
+    history: []
   }
 }
 
@@ -628,6 +654,90 @@ export function withLifetimeProgress(session: SessionState, lifetime: LifetimePr
   return {
     ...session,
     lifetime
+  }
+}
+
+function teachingTextForTask(task: Task, chosenAnswer: number | boolean | string) {
+  const chosenLabel = typeof chosenAnswer === 'boolean' ? (chosenAnswer ? 'Taip' : 'Ne') : String(chosenAnswer)
+  const correctLabel = typeof task.answer === 'boolean' ? (task.answer ? 'Taip' : 'Ne') : String(task.answer)
+
+  if (task.kind === 'missing') {
+    return `Tavo atsakymas: ${chosenLabel}. Teisingas atsakymas: ${correctLabel}. Pirmiausia žiūrime, kokio skaičiaus trūksta, kad lygybė būtų teisinga. ${task.explanation}`
+  }
+
+  if (task.kind === 'compare') {
+    return `Tavo atsakymas: ${chosenLabel}. Teisingas atsakymas: ${correctLabel}. Tokiose užduotyse pirma apskaičiuojame veiksmą, tik po to lyginame. ${task.explanation}`
+  }
+
+  if (task.kind === 'operation') {
+    return `Tavo atsakymas: ${chosenLabel}. Teisingas ženklas: ${correctLabel}. Reikia pažiūrėti, ar rezultatas turi padidėti, ar sumažėti. ${task.explanation}`
+  }
+
+  if (task.kind === 'match') {
+    return `Tavo pasirinkimas: ${chosenLabel}. Teisingas veiksmas: ${correctLabel}. Verta mintyse pasitikrinti kiekvieną veiksmą po vieną. ${task.explanation}`
+  }
+
+  if (task.kind === 'column') {
+    return `Tavo atsakymas: ${chosenLabel}. Teisingas atsakymas: ${correctLabel}. Skaičiuojant stulpeliu pradedame nuo dešinės pusės. ${task.explanation}`
+  }
+
+  return `Tavo atsakymas: ${chosenLabel}. Teisingas atsakymas: ${correctLabel}. ${task.explanation}`
+}
+
+function getMainMistakeMessage(history: AnswerHistoryEntry[]) {
+  const wrong = history.filter((entry) => !entry.correct)
+  if (wrong.length === 0) return 'Šį kartą klaidų beveik nebuvo - puikus darbas.'
+
+  const byKind = new Map<TaskKind, number>()
+  const byOperation = new Map<Operation, number>()
+  for (const entry of wrong) {
+    byKind.set(entry.kind, (byKind.get(entry.kind) ?? 0) + 1)
+    byOperation.set(entry.operation, (byOperation.get(entry.operation) ?? 0) + 1)
+  }
+
+  const hardestKind = [...byKind.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
+  const hardestOperation = [...byOperation.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
+
+  if (hardestKind === 'column') return 'Daugiausia klaidų buvo stulpeliu užduotyse - verta lėčiau sekti vienetus ir dešimtis.'
+  if (hardestKind === 'missing') return 'Dažniausiai suklydai ieškodamas trūkstamo skaičiaus - verta galvoti, ko trūksta iki galutinio atsakymo.'
+  if (hardestKind === 'compare') return 'Dažniausiai suklydai lyginimo užduotyse - pirmiausia apskaičiuok veiksmą, tik tada lygink.'
+  if (hardestKind === 'operation') return 'Dažniausiai suklydai rinkdamasis ženklą - stebėk, ar rezultatas didėja, ar mažėja.'
+  if (hardestOperation === 'subtraction') return 'Atimties užduotys buvo sunkesnės - verta dar kartą pasitreniruoti, kiek lieka atėmus.'
+  return 'Kai kuriose užduotyse verta neskubėti ir pasitikrinti skaičiavimą dar kartą.'
+}
+
+export function summarizeSession(session: SessionState): SessionSummary {
+  const total = session.history.length
+  const correctCount = session.history.filter((entry) => entry.correct).length
+  const wrongCount = total - correctCount
+  const accuracy = total === 0 ? 0 : Math.round((correctCount / total) * 100)
+
+  const wrong = session.history.filter((entry) => !entry.correct)
+  const hardestKind = wrong.length ? wrong.reduce<Record<string, number>>((acc, entry) => {
+    acc[entry.kind] = (acc[entry.kind] ?? 0) + 1
+    return acc
+  }, {}) : null
+  const hardestOperation = wrong.length ? wrong.reduce<Record<string, number>>((acc, entry) => {
+    acc[entry.operation] = (acc[entry.operation] ?? 0) + 1
+    return acc
+  }, {}) : null
+
+  const topKind = hardestKind ? (Object.entries(hardestKind).sort((a, b) => b[1] - a[1])[0]?.[0] as TaskKind) : null
+  const topOperation = hardestOperation ? (Object.entries(hardestOperation).sort((a, b) => b[1] - a[1])[0]?.[0] as Operation) : null
+
+  return {
+    correctCount,
+    wrongCount,
+    accuracy,
+    hardestKind: topKind,
+    hardestOperation: topOperation,
+    mainMistake: getMainMistakeMessage(session.history),
+    teachingFocus:
+      topKind === 'column'
+        ? 'Kitą kartą pradėk nuo vienetų ir tik tada pereik prie dešimčių.'
+        : topOperation === 'subtraction'
+          ? 'Kitą kartą pasitikrink, ar po atimties rezultatas tikrai mažesnis.'
+          : 'Kitą kartą spręsk ramiai ir pirmiausia apskaičiuok, tik tada rinkis atsakymą.'
   }
 }
 
@@ -651,6 +761,16 @@ export function applyAnswer(session: SessionState, value: number | string | bool
   const correct = normalized === task.answer
   const rewards = { ...session.rewards, badges: [...session.rewards.badges] }
   let hearts = session.hearts
+  const historyEntry: AnswerHistoryEntry = {
+    taskId: task.id,
+    kind: task.kind,
+    operation: task.operation,
+    prompt: task.prompt,
+    chosenAnswer: normalized,
+    correctAnswer: task.answer,
+    correct,
+    explanation: task.explanation
+  }
 
   if (correct) {
     rewards.stars += session.config.mode === 'lightning' ? 2 : task.kind === 'compare' ? 1 : 2
@@ -668,11 +788,15 @@ export function applyAnswer(session: SessionState, value: number | string | bool
     correct,
     praise: correct ? praise[(rewards.completed - 1) % praise.length] : 'Bandome dar kartą!',
     explanation: task.explanation,
+    chosenAnswer: normalized,
+    correctAnswer: task.answer,
+    teachingText: teachingTextForTask(task, normalized),
     nextSession: {
       ...session,
       currentIndex: Math.min(session.tasks.length, session.currentIndex + 1),
       rewards,
-      hearts
+      hearts,
+      history: [...session.history, historyEntry]
     }
   }
 }

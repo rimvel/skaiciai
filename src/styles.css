@@ -257,6 +257,38 @@ h1 {
   justify-content: space-between;
 }
 
+.task-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.task-meta-pill,
+.task-meta-progress {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: #eef4ff;
+  color: #345789;
+}
+
+.task-meta-pill {
+  min-width: 28px;
+}
+
+.task-meta-progress {
+  margin-left: auto;
+  background: #e8f5ea;
+  color: #206044;
+}
+
 .task-header {
   margin-bottom: 12px;
 }
@@ -616,6 +648,7 @@ h1 {
   display: grid;
   gap: 6px;
   margin-top: 16px;
+  border: 1px solid transparent;
 }
 
 .feedback-box.success {
@@ -626,6 +659,27 @@ h1 {
 .feedback-box.error {
   background: #fff3f0;
   color: #8c4330;
+  border-color: rgba(194, 92, 63, 0.26);
+  box-shadow: 0 12px 24px rgba(194, 92, 63, 0.08);
+}
+
+.feedback-box strong + span {
+  margin-top: 2px;
+}
+
+.learning-summary {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f8fbff 0%, #eefbf2 100%);
+  border: 1px solid rgba(60, 110, 168, 0.12);
+}
+
+.learning-summary h3,
+.learning-summary p {
+  margin: 0;
 }
 
 .side-panel {
@@ -947,6 +1001,18 @@ h1 {
   .app-card.gameplay-active .task-header {
     margin-bottom: 8px;
     gap: 8px;
+  }
+
+  .task-meta-row {
+    margin-bottom: 10px;
+    gap: 6px;
+  }
+
+  .task-meta-pill,
+  .task-meta-progress {
+    min-height: 24px;
+    padding: 4px 8px;
+    font-size: 0.74rem;
   }
 
   .app-card.gameplay-active .task-kind,

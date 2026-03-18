@@ -7,6 +7,7 @@ import {
   getModeMeta,
   isFinished,
   progressLabel,
+  summarizeSession,
   withLifetimeProgress,
   type Difficulty,
   type GameMode,
@@ -268,13 +269,21 @@ function App() {
   const [settings, setSettings] = useState<ParentSettings>(() => readSettings())
   const [selected, setSelected] = useState<number | string | boolean | null>(null)
   const [showHint, setShowHint] = useState(false)
-  const [feedback, setFeedback] = useState<{ tone: 'success' | 'error'; text: string; explanation: string } | null>(null)
+  const [feedback, setFeedback] = useState<{
+    tone: 'success' | 'error'
+    text: string
+    explanation: string
+    chosenAnswer: number | boolean | string
+    correctAnswer: number | boolean | string
+    teachingText: string
+  } | null>(null)
   const [showWelcome, setShowWelcome] = useState(true)
   const [showParentDashboard, setShowParentDashboard] = useState(false)
   const [celebrationMode, setCelebrationMode] = useState<'idle' | 'correct' | 'finish'>('idle')
 
   const task = session.tasks[session.currentIndex]
   const finished = isFinished(session)
+  const sessionSummary = summarizeSession(session)
   const difficultyMeta = getDifficultyMeta(difficulty)
   const modeMeta = getModeMeta(mode)
   const mascotMessage = useMemo(
@@ -338,7 +347,10 @@ function App() {
     setFeedback({
       tone: result.correct ? 'success' : 'error',
       text: result.praise,
-      explanation: result.explanation
+      explanation: result.explanation,
+      chosenAnswer: result.chosenAnswer,
+      correctAnswer: result.correctAnswer,
+      teachingText: result.teachingText
     })
     setSession(result.nextSession)
     setSelected(null)
@@ -373,6 +385,30 @@ function App() {
   }
 
   const displayedBadges = showWelcome ? lifetime.badgesUnlocked : session.rewards.badges
+
+  const formatAnswerLabel = (value: number | boolean | string) => {
+    if (typeof value === 'boolean') return value ? 'Taip' : 'Ne'
+    return String(value)
+  }
+
+  const taskKindLabel =
+    task?.kind === 'choice'
+      ? 'Pasirink'
+      : task?.kind === 'missing'
+        ? 'Trūksta'
+        : task?.kind === 'column'
+          ? 'Stulpeliu'
+          : task?.kind === 'operation'
+            ? 'Ženklas'
+            : task?.kind === 'match'
+              ? 'Veiksmas'
+              : task?.kind === 'story'
+                ? 'Istorija'
+                : 'Palygink'
+
+  const modeIcon = modeMeta.label === 'Stulpeliu' ? '▦' : modeMeta.label === 'Žaibo raundas' ? '⚡' : modeMeta.label === 'Skaičių detektyvas' ? '🔎' : modeMeta.label === 'Pasakojimų kelias' ? '📖' : '★'
+  const operationIcon = task?.operation === 'addition' ? '+' : '-'
+  const difficultyIcon = difficulty === 'easy' ? '●' : difficulty === 'medium' ? '◐' : '▲'
 
   return (
     <div className="page-shell">
@@ -464,6 +500,18 @@ function App() {
                 </p>
                 <div className="summary-grid summary-grid-wide">
                   <div className="summary-tile">
+                    <span>Teisingi</span>
+                    <strong>{sessionSummary.correctCount}</strong>
+                  </div>
+                  <div className="summary-tile">
+                    <span>Neteisingi</span>
+                    <strong>{sessionSummary.wrongCount}</strong>
+                  </div>
+                  <div className="summary-tile">
+                    <span>Tikslumas</span>
+                    <strong>{sessionSummary.accuracy}%</strong>
+                  </div>
+                  <div className="summary-tile">
                     <span>Geriausia serija</span>
                     <strong>{session.rewards.bestStreak}</strong>
                   </div>
@@ -479,6 +527,11 @@ function App() {
                     <span>Žaidimas</span>
                     <strong>{getModeMeta(session.config.mode).label}</strong>
                   </div>
+                </div>
+                <div className="learning-summary">
+                  <h3>Ką verta prisiminti</h3>
+                  <p>{sessionSummary.mainMistake}</p>
+                  <p>{sessionSummary.teachingFocus}</p>
                 </div>
                 <div className="badges-wrap">
                   {session.rewards.badges.length > 0 ? (
@@ -502,28 +555,12 @@ function App() {
               </div>
             ) : (
               <>
-                <div className="task-header">
-                  <span className="task-kind">
-                    {task.kind === 'choice'
-                      ? 'Pasirink atsakymą'
-                      : task.kind === 'missing'
-                        ? 'Rask trūkstamą skaičių'
-                        : task.kind === 'column'
-                          ? 'Skaičiuok stulpeliu'
-                        : task.kind === 'operation'
-                          ? 'Parink ženklą'
-                        : task.kind === 'match'
-                          ? 'Rask tinkamą veiksmą'
-                        : task.kind === 'story'
-                          ? 'Užduotis iš pasakojimo'
-                          : 'Pasakyk, ar tiesa'}
-                  </span>
-                  <span className="task-operation">{task.operation === 'addition' ? 'Sudėtis' : 'Atimtis'}</span>
-                </div>
-
-                <div className="task-topline">
-                  <span className="difficulty-chip">{difficultyMeta.label}</span>
-                  <span className="helper-copy">{modeMeta.label}: {modeMeta.helper}</span>
+                <div className="task-meta-row" aria-label="Užduoties informacija">
+                  <span className="task-meta-pill" title={modeMeta.label}>{modeIcon}</span>
+                  <span className="task-meta-pill" title={taskKindLabel}>{taskKindLabel}</span>
+                  <span className="task-meta-pill" title={task.operation === 'addition' ? 'Sudėtis' : 'Atimtis'}>{operationIcon}</span>
+                  <span className="task-meta-pill" title={difficultyMeta.label}>{difficultyIcon}</span>
+                  <span className="task-meta-progress">{progressLabel(session)}</span>
                 </div>
 
                 {task.kind === 'column' ? <ColumnProblem task={task} showSteps={showHint} revealAnswer={feedback !== null} /> : <h2 className="task-prompt">{task.prompt}</h2>}
@@ -552,8 +589,16 @@ function App() {
 
                 {feedback ? (
                   <div className={`feedback-box ${feedback.tone}`}>
-                    <strong>{feedback.text}</strong>
-                    <span>{feedback.explanation}</span>
+                    <strong>{feedback.tone === 'error' ? 'Neteisinga' : feedback.text}</strong>
+                    {feedback.tone === 'error' ? (
+                      <>
+                        <span>Tavo atsakymas: <strong>{formatAnswerLabel(feedback.chosenAnswer)}</strong></span>
+                        <span>Teisingas atsakymas: <strong>{formatAnswerLabel(feedback.correctAnswer)}</strong></span>
+                        <span>{feedback.teachingText}</span>
+                      </>
+                    ) : (
+                      <span>{feedback.explanation}</span>
+                    )}
                   </div>
                 ) : null}
               </>
