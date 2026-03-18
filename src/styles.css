@@ -877,8 +877,15 @@ h1 {
   }
 
   .answer-grid {
-    grid-template-columns: 1fr;
     gap: 10px;
+  }
+
+  .answer-grid.answer-grid-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .answer-grid.answer-grid-quad {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .task-header,

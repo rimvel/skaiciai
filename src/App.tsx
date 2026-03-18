@@ -565,7 +565,9 @@ function App() {
 
                 {task.kind === 'column' ? <ColumnProblem task={task} showSteps={showHint} revealAnswer={feedback !== null} /> : <h2 className="task-prompt">{task.prompt}</h2>}
 
-                <div className="answer-grid">
+                <div
+                  className={`answer-grid${task.options && task.options.length <= 2 ? ' answer-grid-compact' : ' answer-grid-quad'}`}
+                >
                   {task.options?.map((option) => {
                     const active = selected === option
                     return (
