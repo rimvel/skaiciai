@@ -87,7 +87,7 @@ const difficultySettings: Record<Difficulty, DifficultySettings> = {
     subtractionRange: [4, 12],
     threshold: 10,
     hearts: 4,
-    totalTasks: 8,
+    totalTasks: 12,
     label: 'Lengvas',
     helper: 'Mažesni skaičiai ir daugiau gyvybių.'
   },
@@ -96,7 +96,7 @@ const difficultySettings: Record<Difficulty, DifficultySettings> = {
     subtractionRange: [6, 18],
     threshold: 12,
     hearts: 3,
-    totalTasks: 9,
+    totalTasks: 16,
     label: 'Vidutinis',
     helper: 'Daugiau įvairovės ir šiek tiek spartesnis tempas.'
   },
@@ -105,7 +105,7 @@ const difficultySettings: Record<Difficulty, DifficultySettings> = {
     subtractionRange: [8, 25],
     threshold: 15,
     hearts: 3,
-    totalTasks: 10,
+    totalTasks: 20,
     label: 'Iššūkis',
     helper: 'Didesni skaičiai ir gudresnės užduotys.'
   }
@@ -122,7 +122,7 @@ const gameModes: Record<GameMode, ModeMeta> = {
   story: {
     label: 'Pasakojimų kelias',
     helper: 'Daugiau linksmų istorijų ir situacijų iš kasdienybės.',
-    taskKinds: ['story', 'story', 'choice', 'missing'],
+    taskKinds: ['story', 'story', 'choice', 'missing', 'match'],
     operationBias: ['addition', 'subtraction'],
     taskBonus: 0
   },
@@ -131,21 +131,21 @@ const gameModes: Record<GameMode, ModeMeta> = {
     helper: 'Rask trūkstamus skaičius ir patikrink, ar teiginys teisingas.',
     taskKinds: ['missing', 'compare', 'missing', 'choice', 'operation', 'match'],
     operationBias: ['addition', 'subtraction', 'subtraction'],
-    taskBonus: 1
+    taskBonus: 2
   },
   lightning: {
     label: 'Žaibo raundas',
     helper: 'Trumpesnis ir greitesnis raundas su aiškiais atsakymais.',
     taskKinds: ['choice', 'choice', 'compare', 'operation'],
     operationBias: ['addition', 'addition', 'subtraction'],
-    taskBonus: -2
+    taskBonus: -4
   },
   columns: {
     label: 'Stulpeliu',
     helper: 'Sudėtis ir atimtis stulpeliu su tvarkingu skaičių išdėstymu.',
     taskKinds: ['column'],
     operationBias: ['addition', 'subtraction'],
-    taskBonus: -1
+    taskBonus: -2
   }
 }
 
@@ -167,6 +167,16 @@ const storyTemplates = {
       prompt: `Tomas sudėjo ${a} ${formatCount(a, 'kaladėlė', 'kaladėlės', 'kaladėlių')}, paskui pridėjo dar ${b}. Kiek kaladėlių bokšte?`,
       hint: `Suskaičiuok abi kaladėlių grupes kartu.`,
       explanation: `${a} + ${b} = ${total}, taigi bokšte yra ${total} kaladėlių.`
+    }),
+    (a: number, b: number, total: number) => ({
+      prompt: `Ema nupiešė ${a} gėles, o vėliau dar ${b}. Kiek gėlių ji nupiešė iš viso?`,
+      hint: `Sujunk abi gėlių grupes į vieną bendrą skaičių.`,
+      explanation: `Ema nupiešė ${a} ir dar ${b}, todėl iš viso nupiešė ${total} gėlių.`
+    }),
+    (a: number, b: number, total: number) => ({
+      prompt: `Krepšelyje buvo ${a} kriaušės, o mama įdėjo dar ${b}. Kiek kriaušių dabar krepšelyje?`,
+      hint: `Kai kažko įdedama daugiau, reikia sudėti.`,
+      explanation: `${a} + ${b} = ${total}, todėl krepšelyje dabar yra ${total} kriaušių.`
     })
   ],
   subtraction: [
@@ -179,7 +189,50 @@ const storyTemplates = {
       prompt: `Žaislų dėžėje buvo ${a} ${formatCount(a, 'mašinėlė', 'mašinėlės', 'mašinėlių')}. Į lentyną padėjome ${b}. Kiek mašinėlių liko dėžėje?`,
       hint: `Iš bendro skaičiaus ${a} atimk ${b}.`,
       explanation: `${a} - ${b} = ${difference}, todėl dėžėje liko ${difference} mašinėlių.`
+    }),
+    (a: number, b: number, difference: number) => ({
+      prompt: `Lentoje buvo ${a} lipdukų. ${b} lipdukus nuėmėme. Kiek liko?`,
+      hint: `Kai dalį nuimame, skaičius sumažėja.`,
+      explanation: `${a} - ${b} = ${difference}, todėl lentoje liko ${difference} lipdukų.`
+    }),
+    (a: number, b: number, difference: number) => ({
+      prompt: `Lukas turėjo ${a} balionus, o ${b} padovanojo draugui. Kiek balionų jam liko?`,
+      hint: `Pagalvok, kiek lieka po dovanojimo.`,
+      explanation: `Lukas turėjo ${a}, atidavė ${b}, todėl jam liko ${difference} balionų.`
     })
+  ]
+}
+
+const promptVariants = {
+  additionChoice: [
+    (a: number, b: number) => `Kiek bus ${a} + ${b}?`,
+    (a: number, b: number) => `Suskaičiuok: ${a} + ${b}`,
+    (a: number, b: number) => `Koks yra ${a} ir ${b} sumos atsakymas?`
+  ],
+  subtractionChoice: [
+    (a: number, b: number) => `Kiek bus ${a} - ${b}?`,
+    (a: number, b: number) => `Suskaičiuok: ${a} - ${b}`,
+    (a: number, b: number) => `Kiek lieka, jei iš ${a} atimame ${b}?`
+  ],
+  additionMissing: [
+    (a: number, total: number) => `${a} + ? = ${total}`,
+    (a: number, total: number) => `Koks skaičius tinka: ${a} + ? = ${total}?`,
+    (a: number, total: number) => `Užpildyk trūkstamą vietą: ${a} + ? = ${total}`
+  ],
+  subtractionMissing: [
+    (a: number, difference: number) => `${a} - ? = ${difference}`,
+    (a: number, difference: number) => `Ką reikia atimti iš ${a}, kad liktų ${difference}?`,
+    (a: number, difference: number) => `Užpildyk trūkstamą vietą: ${a} - ? = ${difference}`
+  ],
+  additionCompare: [
+    (a: number, b: number, threshold: number) => `Ar tiesa, kad ${a} + ${b} yra daugiau nei ${threshold}?`,
+    (a: number, b: number, threshold: number) => `Ar suma ${a} + ${b} didesnė už ${threshold}?`,
+    (a: number, b: number, threshold: number) => `Patikrink: ar ${a} + ${b} > ${threshold}?`
+  ],
+  subtractionCompare: [
+    (a: number, b: number, edge: number) => `Ar tiesa, kad ${a} - ${b} yra mažiau nei ${edge}?`,
+    (a: number, b: number, edge: number) => `Ar skirtumas ${a} - ${b} mažesnis už ${edge}?`,
+    (a: number, b: number, edge: number) => `Patikrink: ar ${a} - ${b} < ${edge}?`
   ]
 }
 
@@ -309,7 +362,7 @@ function createAdditionTask(id: number, kind: TaskKind, settings: DifficultySett
       id,
       operation: 'addition',
       kind,
-      prompt: mode === 'lightning' ? `${a} + ${b} = ?` : `Kiek bus ${a} + ${b}?`,
+      prompt: mode === 'lightning' ? `${a} + ${b} = ?` : pickOne(promptVariants.additionChoice)(a, b),
       answer: total,
       options: sampleOptions(total),
       hint: `Pabandyk pradėti nuo ${a} ir skaičiuoti toliau dar ${b} žingsnius.`,
@@ -322,7 +375,7 @@ function createAdditionTask(id: number, kind: TaskKind, settings: DifficultySett
       id,
       operation: 'addition',
       kind,
-      prompt: mode === 'detective' ? `Detektyvo užduotis: ${a} + ? = ${total}` : `${a} + ? = ${total}`,
+      prompt: mode === 'detective' ? `Detektyvo užduotis: ${pickOne(promptVariants.additionMissing)(a, total)}` : pickOne(promptVariants.additionMissing)(a, total),
       answer: b,
       options: sampleOptions(b),
       hint: `Pagalvok, kiek reikia pridėti prie ${a}, kad gautum ${total}.`,
@@ -338,8 +391,8 @@ function createAdditionTask(id: number, kind: TaskKind, settings: DifficultySett
       kind,
       prompt:
         mode === 'detective'
-          ? `Užuomina detektyvui: ar ${a} + ${b} yra daugiau nei ${settings.threshold}?`
-          : `Ar tiesa, kad ${a} + ${b} yra daugiau nei ${settings.threshold}?`,
+          ? `Užuomina detektyvui: ${pickOne(promptVariants.additionCompare)(a, b, settings.threshold)}`
+          : pickOne(promptVariants.additionCompare)(a, b, settings.threshold),
       answer: comparison,
       options: ['Taip', 'Ne'],
       hint: `Pirma suskaičiuok sumą, tada palygink ją su ${settings.threshold}.`,
@@ -416,7 +469,7 @@ function createSubtractionTask(id: number, kind: TaskKind, settings: DifficultyS
       id,
       operation: 'subtraction',
       kind,
-      prompt: mode === 'lightning' ? `${a} - ${b} = ?` : `Kiek bus ${a} - ${b}?`,
+      prompt: mode === 'lightning' ? `${a} - ${b} = ?` : pickOne(promptVariants.subtractionChoice)(a, b),
       answer: difference,
       options: sampleOptions(difference),
       hint: `Iš didesnio skaičiaus ${a} atimk ${b} po truputį.`,
@@ -429,7 +482,7 @@ function createSubtractionTask(id: number, kind: TaskKind, settings: DifficultyS
       id,
       operation: 'subtraction',
       kind,
-      prompt: mode === 'detective' ? `Paslėptas skaičius: ${a} - ? = ${difference}` : `${a} - ? = ${difference}`,
+      prompt: mode === 'detective' ? `Paslėptas skaičius: ${pickOne(promptVariants.subtractionMissing)(a, difference)}` : pickOne(promptVariants.subtractionMissing)(a, difference),
       answer: b,
       options: sampleOptions(b),
       hint: `Pagalvok, kiek turi dingti iš ${a}, kad liktų ${difference}.`,
@@ -446,8 +499,8 @@ function createSubtractionTask(id: number, kind: TaskKind, settings: DifficultyS
       kind,
       prompt:
         mode === 'detective'
-          ? `Patikrink pėdsaką: ar ${a} - ${b} yra mažiau nei ${edge}?`
-          : `Ar tiesa, kad ${a} - ${b} yra mažiau nei ${edge}?`,
+          ? `Patikrink pėdsaką: ${pickOne(promptVariants.subtractionCompare)(a, b, edge)}`
+          : pickOne(promptVariants.subtractionCompare)(a, b, edge),
       answer: comparison,
       options: ['Taip', 'Ne'],
       hint: `Pirma rask skirtumą, o tada palygink jį su nurodytu skaičiumi.`,

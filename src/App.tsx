@@ -18,13 +18,6 @@ import {
 const STORAGE_KEY = 'skaiciuku-sodas-progress'
 const SETTINGS_KEY = 'skaiciuku-sodas-settings'
 
-const mascotMessages = [
-  'Augu kartu su kiekvienu tavo sprendimu!',
-  'Paspausk užuominą, jei nori draugiškos pagalbos.',
-  'Rink žvaigždutes ir atrakink lipdukus!',
-  'Pirmiausia pabandyk pats, o tada pasitikrink.'
-]
-
 const defaultLifetime: LifetimeProgress = {
   starsCollected: 0,
   sessionsPlayed: 0,
@@ -112,6 +105,78 @@ function playToneSequence(kind: 'success' | 'error' | 'celebration', enabled: bo
   window.setTimeout(() => {
     void context.close()
   }, Math.ceil((stopAt - context.currentTime) * 1000))
+}
+
+function getTaskSpecificTip(task: Task) {
+  if (task.kind === 'choice') {
+    return task.operation === 'addition'
+      ? 'Pirmiausia mintyse suskaičiuok sumą, tik tada rinkis iš variantų.'
+      : 'Pirmiausia rask, kiek lieka, tik tada žiūrėk į atsakymų mygtukus.'
+  }
+
+  if (task.kind === 'missing') {
+    return task.operation === 'addition'
+      ? 'Pagalvok, kokio skaičiaus trūksta, kad pasiektum parodytą sumą.'
+      : 'Pagalvok, kiek reikia atimti, kad liktų parodytas rezultatas.'
+  }
+
+  if (task.kind === 'compare') {
+    return 'Pirma apskaičiuok veiksmą, o tik tada nuspręsk, ar teiginys teisingas.'
+  }
+
+  if (task.kind === 'story') {
+    return task.operation === 'addition'
+      ? 'Įsivaizduok istoriją: kai kažko prisideda daugiau, dažniausiai reikia sudėti.'
+      : 'Įsivaizduok istoriją: kai kažko sumažėja ar lieka mažiau, dažniausiai reikia atimti.'
+  }
+
+  if (task.kind === 'operation') {
+    return 'Pažiūrėk, ar galutinis skaičius didesnis ar mažesnis už pirmąjį - tai padės parinkti ženklą.'
+  }
+
+  if (task.kind === 'match') {
+    return 'Palygink visus veiksmus po vieną ir atmesk tuos, kurių rezultatas akivaizdžiai netinka.'
+  }
+
+  if (task.kind === 'column') {
+    return task.operation === 'addition'
+      ? 'Stulpeliu pradėk nuo vienetų. Jei gauni daugiau nei 9, perkelk vieną dešimtį į kitą stulpelį.'
+      : 'Stulpeliu pradėk nuo vienetų. Jei viršuje skaičius per mažas, pasiskolink iš kairiojo stulpelio.'
+  }
+
+  return 'Ramiai perskaityk užduotį ir spręsk žingsnis po žingsnio.'
+}
+
+function getMascotHelp({
+  showWelcome,
+  finished,
+  feedback,
+  showHint,
+  task,
+  streak,
+  hearts,
+  currentIndex,
+  totalTasks
+}: {
+  showWelcome: boolean
+  finished: boolean
+  feedback: { tone: 'success' | 'error'; text: string; explanation: string } | null
+  showHint: boolean
+  task: Task | undefined
+  streak: number
+  hearts: number
+  currentIndex: number
+  totalTasks: number
+}) {
+  if (showWelcome) return 'Pasirink žaidimą ir sunkumą. Pradžioje rekomenduoju lengvą lygį.'
+  if (finished) return hearts === 0 ? 'Baigėsi gyvybės, bet gali pabandyti dar kartą ir pagerinti savo seriją.' : 'Sesija baigta. Peržiūrėk rezultatą ir išsirink naują žaidimą.'
+  if (!task) return 'Tuoj paruošiu kitą užduotį.'
+  if (feedback?.tone === 'error') return `Atsakymas buvo neteisingas. ${task.kind === 'column' ? 'Atverk žingsnius ir sek stulpelius iš dešinės į kairę.' : getTaskSpecificTip(task)}`
+  if (feedback?.tone === 'success') return streak >= 3 ? `Puiki serija - jau ${streak} iš eilės! Pereik prie kitos užduoties.` : 'Teisingai. Perskaityk paaiškinimą ir tęsk toliau.'
+  if (showHint) return task.kind === 'column' ? 'Viršuje matai pagalbinius žingsnius. Pirmiausia žiūrėk į vienetus, po to į dešimtis.' : `${task.hint} ${getTaskSpecificTip(task)}`
+  if (hearts === 1) return 'Liko paskutinė gyvybė. Neskubėk ir pasinaudok užuomina, jei reikia.'
+  if (task.kind === 'column') return `${getTaskSpecificTip(task)} Jei reikia pagalbos, spausk „Rodyti žingsnius“.`
+  return `Dabar ${currentIndex + 1}-oji užduotis iš ${totalTasks}. ${getTaskSpecificTip(task)}`
 }
 
 function ColumnProblem({ task, showSteps, revealAnswer }: { task: Task; showSteps: boolean; revealAnswer: boolean }) {
@@ -213,8 +278,19 @@ function App() {
   const difficultyMeta = getDifficultyMeta(difficulty)
   const modeMeta = getModeMeta(mode)
   const mascotMessage = useMemo(
-    () => mascotMessages[session.rewards.completed % mascotMessages.length],
-    [session.rewards.completed]
+    () =>
+      getMascotHelp({
+        showWelcome,
+        finished,
+        feedback,
+        showHint,
+        task,
+        streak: session.rewards.streak,
+        hearts: session.hearts,
+        currentIndex: session.currentIndex,
+        totalTasks: session.tasks.length
+      }),
+    [feedback, finished, session.currentIndex, session.hearts, session.rewards.streak, session.tasks.length, showHint, showWelcome, task]
   )
 
   useEffect(() => {
