@@ -793,7 +793,7 @@ export function applyAnswer(session: SessionState, value: number | string | bool
     teachingText: teachingTextForTask(task, normalized),
     nextSession: {
       ...session,
-      currentIndex: Math.min(session.tasks.length, session.currentIndex + 1),
+      currentIndex: correct ? Math.min(session.tasks.length, session.currentIndex + 1) : session.currentIndex,
       rewards,
       hearts,
       history: [...session.history, historyEntry]

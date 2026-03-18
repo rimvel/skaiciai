@@ -353,14 +353,24 @@ function App() {
       teachingText: result.teachingText
     })
     setSession(result.nextSession)
-    setSelected(null)
-    setShowHint(false)
+    setSelected(result.correct ? null : result.chosenAnswer)
+    setShowHint(result.correct ? false : task.kind === 'column')
     setCelebrationMode(result.correct ? 'correct' : 'idle')
     playToneSequence(result.correct ? 'success' : 'error', settings.soundEnabled)
 
     if (result.correct) {
       window.setTimeout(() => setCelebrationMode('idle'), 900)
     }
+  }
+
+  const continueAfterReview = () => {
+    setSession((current) => ({
+      ...current,
+      currentIndex: Math.min(current.tasks.length, current.currentIndex + 1)
+    }))
+    setFeedback(null)
+    setSelected(null)
+    setShowHint(false)
   }
 
   const openWelcome = () => {
@@ -570,8 +580,15 @@ function App() {
                 >
                   {task.options?.map((option) => {
                     const active = selected === option
+                    const reviewCorrect = feedback?.tone === 'error' && feedback.correctAnswer === option
+                    const reviewWrong = feedback?.tone === 'error' && feedback.chosenAnswer === option
                     return (
-                      <button key={String(option)} className={`answer-button${active ? ' active' : ''}`} onClick={() => setSelected(option)}>
+                      <button
+                        key={String(option)}
+                        className={`answer-button${active ? ' active' : ''}${reviewCorrect ? ' review-correct' : ''}${reviewWrong ? ' review-wrong' : ''}`}
+                        onClick={() => setSelected(option)}
+                        disabled={feedback?.tone === 'error'}
+                      >
                         {option}
                       </button>
                     )
@@ -579,24 +596,38 @@ function App() {
                 </div>
 
                 <div className="actions-row">
-                  <button className="secondary-button" onClick={() => setShowHint((value) => !value)}>
-                    {task.kind === 'column' ? (showHint ? 'Slėpti žingsnius' : 'Rodyti žingsnius') : showHint ? 'Paslėpti užuominą' : 'Rodyti užuominą'}
-                  </button>
-                  <button className="primary-button" disabled={selected === null} onClick={submitAnswer}>
-                    Tikrinti
-                  </button>
+                  {feedback?.tone === 'error' ? (
+                    <>
+                      <button className="secondary-button" onClick={() => setShowHint((value) => !value)}>
+                        {task.kind === 'column' ? (showHint ? 'Slėpti žingsnius' : 'Rodyti žingsnius') : showHint ? 'Slėpti paaiškinimą' : 'Rodyti užuominą'}
+                      </button>
+                      <button className="primary-button" onClick={continueAfterReview}>
+                        Keliaujam toliau
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button className="secondary-button" onClick={() => setShowHint((value) => !value)}>
+                        {task.kind === 'column' ? (showHint ? 'Slėpti žingsnius' : 'Rodyti žingsnius') : showHint ? 'Paslėpti užuominą' : 'Rodyti užuominą'}
+                      </button>
+                      <button className="primary-button" disabled={selected === null} onClick={submitAnswer}>
+                        Tikrinti
+                      </button>
+                    </>
+                  )}
                 </div>
 
                 {showHint && task.kind !== 'column' ? <div className="hint-box">{task.hint}</div> : null}
 
                 {feedback ? (
                   <div className={`feedback-box ${feedback.tone}`}>
-                    <strong>{feedback.tone === 'error' ? 'Neteisinga' : feedback.text}</strong>
+                    <strong>{feedback.tone === 'error' ? 'Beveik! Pasižiūrėkime kartu' : feedback.text}</strong>
                     {feedback.tone === 'error' ? (
                       <>
                         <span>Tavo atsakymas: <strong>{formatAnswerLabel(feedback.chosenAnswer)}</strong></span>
                         <span>Teisingas atsakymas: <strong>{formatAnswerLabel(feedback.correctAnswer)}</strong></span>
                         <span>{feedback.teachingText}</span>
+                        <span className="feedback-next-tip">Kai būsi pasiruošęs, spausk „Keliaujam toliau“.</span>
                       </>
                     ) : (
                       <span>{feedback.explanation}</span>
